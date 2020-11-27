@@ -31,8 +31,8 @@
               <el-option
                 v-for="(cid, index) in cameraIds"
                 :key="index"
-                :label="cid"
-                :value="cid"
+                :label="cid.name"
+                :value="cid.value"
               ></el-option>
             </el-select>
           </el-form-item>
@@ -41,13 +41,13 @@
               <el-option
                 v-for="(mid, index) in microphoneIds"
                 :key="index"
-                :label="mid"
-                :value="mid"
+                :label="mid.name"
+                :value="mid.value"
               ></el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="CAMERA RESOLUTION">
-            <el-select v-model="option.resolutions">
+            <el-select v-model="option.cameraResolution">
               <el-option
                 v-for="(resolution, index) in cameraResolutions"
                 :key="index"
@@ -115,12 +115,12 @@ export default {
         uid: "",
         cameraId: "",
         microphoneId: "",
-        cameraResolution: "",
+        cameraResolution: "default",
         mode: "live",
         codec: "h264",
       },
-      cameraIds: ["1", "2"],
-      microphoneIds: ["1", "2"],
+      cameraIds: [],
+      microphoneIds: [],
       cameraResolutions: [
         {
           name: "default",
@@ -235,9 +235,15 @@ export default {
       });
     },
   },
-  created() {
+  async created() {
     this.rtc = new RTCClient();
     let rtc = this.rtc;
+    const devices = await rtc.getDevices();
+    this.microphoneIds = devices.audios;
+    this.option.microphoneId = this.microphoneIds[0].value;
+    this.cameraIds = devices.videos;
+    this.option.cameraId = this.cameraIds[0].value;
+
     rtc.on("stream-added", (evt) => {
       let { stream } = evt;
       log("[agora] [stream-added] stream-added", stream.getId());

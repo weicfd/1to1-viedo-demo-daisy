@@ -11,6 +11,8 @@ export default class RTCClient {
          *  channel: string, channel name
          *  uid: number
          *  token; string,
+         *  microphoneId: string,
+         *  cameraId: string
          * }
          **/
         this.option = {
@@ -20,12 +22,66 @@ export default class RTCClient {
             channel: '',
             uid: 0,
             token: '',
+            microphoneId: '',
+            cameraId: '',
         }
         this.client = null
         this.localStream = null
         this.published = false
         this._eventBus = new EventEmitter()
     }
+
+  getDevices() {
+    console.log("getDevices")
+    return new Promise((resolve, reject) => {
+      AgoraRTC.getDevices((items) => {
+        console.log("get devices success");
+        items.filter(function (item) {
+          return ["audioinput", "videoinput"].indexOf(item.kind) !== -1
+        })
+        .map(function (item) {
+          return {
+          name: item.label,
+          value: item.deviceId,
+          kind: item.kind,
+          }
+        })
+        const videos = []
+        const audios = []
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i]
+          if ("videoinput" == item.kind) {
+            let name = item.label
+            let value = item.deviceId
+            if (!name) {
+              name = "camera-" + videos.length
+            }
+            videos.push({
+              name: name,
+              value: value,
+              kind: item.kind
+            })
+          }
+          if ("audioinput" == item.kind) {
+            let name = item.label
+            let value = item.deviceId
+            if (!name) {
+              name = "microphone-" + audios.length
+            }
+            audios.push({
+              name: name,
+              value: value,
+              kind: item.kind
+            })
+          }
+        }
+        resolve({videos: videos, audios: audios})
+      }, (err) => {
+        reject(err)
+        console.error("get devices failed", err)
+      })
+    })
+  }
 
     //init client and Join a channel
   joinChannel(option) {
@@ -35,13 +91,15 @@ export default class RTCClient {
       this.client.init(option.appid, () => { 
         console.log("init success")
         this.clientListener()
-        this.client.join(option.token ? option.token : null, option.channel, null, (uid) => {
+        this.client.join(option.token ? option.token : null, option.channel, option.uid ? +option.uid : null, (uid) => {
           console.log("join channel: " + this.option.channel + " success, uid: ", uid)
           this.option = {
             appid: option.appid,
             token: option.token,
             channel: option.channel,
             uid: uid,
+            microphoneId: option.microphoneId,
+            cameraId: option.cameraId,
           }
           resolve()
         }, (err) => {
@@ -64,6 +122,8 @@ export default class RTCClient {
         audio: true,
         video: true,
         screen: false,
+        microphoneId: this.option.microphoneId,
+        cameraId: this.option.cameraId
       })
       // Initialize the local stream
       this.localStream.init(() => {
