@@ -1,26 +1,25 @@
 <template>
   <div id="app">
-    <Home msg="1to1 Video Call Demo"/>
+    <Home msg="1to1 Video Call Demo" />
   </div>
 </template>
 
 <script>
-import Home from './components/Home.vue'
+import Home from "./components/Home.vue";
 
 export default {
-  name: 'app',
+  name: "app",
   components: {
-    Home
-  }
-}
+    Home,
+  },
+};
 </script>
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin-top: 60px;
 }
